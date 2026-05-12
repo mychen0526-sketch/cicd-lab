@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { buildApp } from '../src/app';
 
 describe('Fastify app', () => {
+  it('intentional failure for CI screenshot', () => {
+    expect(1).toBe(2);
+  });
+
   it('GET /health returns ok status', async () => {
     const app = buildApp({ logger: false });
     const response = await app.inject({
