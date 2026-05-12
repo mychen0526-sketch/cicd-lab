@@ -1,0 +1,54 @@
+name: CI B13705055
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Run tests and generate JUnit report
+        run: |
+          mkdir -p reports
+          npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml
+
+      - name: Upload test report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-junit-report
+          path: reports/vitest-junit.xml
+          if-no-files-found: error
+
+      - name: Publish test results in Actions
+        if: always()
+        uses: dorny/test-reporter@v2
+        with:
+          name: Vitest Results
+          path: reports/vitest-junit.xml
+          reporter: java-junit
